@@ -57,6 +57,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material.icons.filled.Delete
 import android.app.DatePickerDialog
 import com.example.agendapersonal.util.FormatoAlmacenamiento
+import com.example.agendapersonal.ui.components.AvisoRecordatoriosDesactivados
 
 
 
@@ -179,6 +180,11 @@ fun DiaScreen(
                 )
             }
         }
+        // Avisa si falta el permiso de alarmas exactas.
+        AvisoRecordatoriosDesactivados(
+            modifier = Modifier.padding(top = 12.dp)
+        )
+
         // Espacio entre el encabezado y la información de la fecha.
         Spacer(modifier = Modifier.height(20.dp))
 

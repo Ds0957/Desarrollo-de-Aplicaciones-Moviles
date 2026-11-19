@@ -2,6 +2,7 @@
 package com.example.agendapersonal.viewmodel
 
 import android.app.Application
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.agendapersonal.model.Actividad
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import com.example.agendapersonal.alarm.ActividadAlarmaReceiver
 import com.example.agendapersonal.alarm.ActividadAlarmaScheduler
+import com.example.agendapersonal.alarm.PermisoAlarmasExactas
 
 // ViewModel principal de la agenda.
 // Conecta la interfaz con la base de datos y administra
@@ -48,7 +50,7 @@ class AgendaViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             val nuevoId = actividadDao.insertarActividad(actividad).toInt()
 
-            alarmaScheduler.programar(
+            programarAlarma(
                 actividad.copy(id = nuevoId)
             )
         }
@@ -92,7 +94,7 @@ class AgendaViewModel(application: Application) : AndroidViewModel(application) 
 
                 // Mantiene programado el recordatorio aunque la alarma
                 // adicional esté desactivada.
-                alarmaScheduler.programar(actividadActualizada)
+                programarAlarma(actividadActualizada)
             }
         }
     }
@@ -105,7 +107,7 @@ class AgendaViewModel(application: Application) : AndroidViewModel(application) 
             actividadDao.actualizarActividad(actividad)
 
             if (!actividad.completada) {
-                alarmaScheduler.programar(actividad)
+                programarAlarma(actividad)
             } else {
                 alarmaScheduler.cancelar(actividad.id)
             }
@@ -194,6 +196,25 @@ class AgendaViewModel(application: Application) : AndroidViewModel(application) 
                 fechaInicio,
                 fechaFin
             )
+        }
+    }
+
+    // Programa la alarma de una actividad y avisa al usuario si no se pudo
+    // por falta del permiso de alarmas exactas. Las actividades pasadas
+    // tampoco se programan, pero eso es esperado y no se avisa.
+    // Cuando el usuario conceda el permiso, ActividadAlarmaBootReceiver
+    // programará de nuevo todas las actividades pendientes.
+    private fun programarAlarma(actividad: Actividad) {
+        val programada = alarmaScheduler.programar(actividad)
+        val aplicacion = getApplication<Application>()
+
+        if (!programada && !PermisoAlarmasExactas.estaConcedido(aplicacion)) {
+            Toast.makeText(
+                aplicacion,
+                "La actividad se guardó, pero su alarma no sonará. " +
+                        "Activa \"Alarmas y recordatorios\" para Agenda Personal en Ajustes.",
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 

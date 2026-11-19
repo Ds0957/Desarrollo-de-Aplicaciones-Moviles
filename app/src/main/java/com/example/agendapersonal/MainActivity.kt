@@ -1,28 +1,34 @@
 package com.example.agendapersonal
 
 import android.Manifest
-import android.app.AlarmManager
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import com.example.agendapersonal.ui.navigation.AppNavigation
 import com.example.agendapersonal.ui.theme.AgendaPersonalTheme
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.example.agendapersonal.alarm.ActividadAlarmaReceiver
 import com.example.agendapersonal.alarm.ActividadAlarmaSonidoService
+import com.example.agendapersonal.alarm.PermisoAlarmasExactas
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 
 class MainActivity : ComponentActivity() {
 
     private var actividadIdPendiente by mutableStateOf<Int?>(null)
+
+    // Controla el diálogo que explica el permiso de alarmas exactas.
+    // Se guarda en onSaveInstanceState para que no desaparezca al girar.
+    private var mostrarDialogoAlarmas by mutableStateOf(false)
 
     private val solicitudNotificaciones =
         registerForActivityResult(
@@ -45,10 +51,32 @@ class MainActivity : ComponentActivity() {
             procesarIntentDeNotificacion(intent)
         }
 
-        solicitarPermisos()
+        mostrarDialogoAlarmas =
+            savedInstanceState?.getBoolean(ESTADO_DIALOGO_ALARMAS) ?: false
+
+        // Los permisos se piden al abrir la app, no al recrear la Activity.
+        if (savedInstanceState == null) {
+            solicitarPermisos()
+        }
 
         setContent {
             AgendaPersonalTheme {
+                if (mostrarDialogoAlarmas) {
+                    DialogoPermisoAlarmas(
+                        onIrAAjustes = {
+                            mostrarDialogoAlarmas = false
+                            PermisoAlarmasExactas.abrirAjustes(this)
+                        },
+                        onAhoraNo = {
+                            mostrarDialogoAlarmas = false
+                            PermisoAlarmasExactas.marcarPospuesto(this)
+                        },
+                        onCerrar = {
+                            mostrarDialogoAlarmas = false
+                        }
+                    )
+                }
+
                 AppNavigation(
                     actividadIdParaEditar = actividadIdPendiente,
                     onActividadAbierta = {
@@ -59,6 +87,11 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(ESTADO_DIALOGO_ALARMAS, mostrarDialogoAlarmas)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -110,20 +143,51 @@ class MainActivity : ComponentActivity() {
 
     private fun solicitarPermisoAlarmasExactas() {
         // El acceso a alarmas exactas se concede desde los ajustes del sistema.
+        // Antes de enviar al usuario allí se le explica para qué sirve, salvo
+        // que ya haya elegido "Ahora no".
         if (
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+            !PermisoAlarmasExactas.estaConcedido(this) &&
+            !PermisoAlarmasExactas.fuePospuesto(this)
         ) {
-            val alarmManager =
-                getSystemService(ALARM_SERVICE) as AlarmManager
-
-            if (!alarmManager.canScheduleExactAlarms()) {
-                val intent = Intent(
-                    Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
-                    Uri.parse("package:$packageName")
-                )
-
-                startActivity(intent)
-            }
+            mostrarDialogoAlarmas = true
         }
     }
+
+    private companion object {
+        const val ESTADO_DIALOGO_ALARMAS = "mostrar_dialogo_alarmas"
+    }
+}
+
+// Explica por qué la app necesita el permiso "Alarmas y recordatorios"
+// antes de abrir los ajustes del sistema.
+@Composable
+private fun DialogoPermisoAlarmas(
+    onIrAAjustes: () -> Unit,
+    onAhoraNo: () -> Unit,
+    onCerrar: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onCerrar,
+        title = {
+            Text(text = "Activar recordatorios")
+        },
+        text = {
+            Text(
+                text = "Para que la alarma de cada actividad suene a la hora " +
+                        "exacta, Android necesita que permitas \"Alarmas y " +
+                        "recordatorios\" para Agenda Personal. Sin este permiso " +
+                        "las actividades se guardan, pero no sonarán."
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onIrAAjustes) {
+                Text(text = "Ir a ajustes")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onAhoraNo) {
+                Text(text = "Ahora no")
+            }
+        }
+    )
 }

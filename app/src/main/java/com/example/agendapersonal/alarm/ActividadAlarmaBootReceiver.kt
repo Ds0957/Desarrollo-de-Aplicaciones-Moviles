@@ -1,6 +1,7 @@
 
 package com.example.agendapersonal.alarm
 
+import android.app.AlarmManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -11,8 +12,9 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
-// Recibe los eventos de inicio de Android y los cambios de hora
-// para restaurar las alarmas de las actividades pendientes.
+// Recibe los eventos de inicio de Android, los cambios de hora y la
+// concesión del permiso de alarmas exactas para restaurar las alarmas
+// de las actividades pendientes.
 class ActividadAlarmaBootReceiver : BroadcastReceiver() {
 
     // Se ejecuta cuando Android envía uno de los eventos registrados.
@@ -28,7 +30,11 @@ class ActividadAlarmaBootReceiver : BroadcastReceiver() {
             Intent.ACTION_TIME_CHANGED,
 
                 // Cambió la zona horaria del dispositivo.
-            Intent.ACTION_TIMEZONE_CHANGED -> {
+            Intent.ACTION_TIMEZONE_CHANGED,
+
+                // El usuario concedió el permiso "Alarmas y recordatorios".
+                // Las actividades creadas sin permiso no tenían alarma.
+            AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED -> {
 
                 // Permite continuar el trabajo asíncrono después de onReceive().
                 val pendingResult = goAsync()
