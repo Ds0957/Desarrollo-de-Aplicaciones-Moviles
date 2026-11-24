@@ -14,3 +14,11 @@
 .cxx
 local.properties
 .idea/
+
+# Claves de firma e instaladores: nunca deben subirse al repositorio.
+*.jks
+*.keystore
+*.p12
+keystore.properties
+*.apk
+*.aab

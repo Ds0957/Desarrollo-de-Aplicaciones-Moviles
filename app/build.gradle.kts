@@ -1,7 +1,21 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+}
+
+// La clave de firma y su contraseña viven fuera del repositorio, que es público.
+// Si no existen en este equipo, la variante release se compila sin firmar.
+val archivoFirma = File(
+    System.getProperty("user.home"),
+    ".agenda-personal-firma/keystore.properties"
+)
+val datosFirma = Properties().apply {
+    if (archivoFirma.exists()) {
+        archivoFirma.inputStream().use { load(it) }
+    }
 }
 
 android {
@@ -14,14 +28,27 @@ android {
         applicationId = "com.example.agendapersonal"
         minSdk = 24
         targetSdk = 37
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 3
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        if (archivoFirma.exists()) {
+            create("release") {
+                storeFile = File(archivoFirma.parentFile, "release.p12")
+                storeType = "PKCS12"
+                storePassword = datosFirma.getProperty("password")
+                keyAlias = "agenda-personal"
+                keyPassword = datosFirma.getProperty("password")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig = signingConfigs.findByName("release")
             optimization {
                 enable = false
             }
