@@ -1,5 +1,6 @@
 package com.example.agendapersonal.ui.screens
 
+import androidx.compose.runtime.saveable.rememberSaveable
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import androidx.compose.foundation.layout.Column
@@ -49,15 +50,15 @@ fun ProgramarActividadScreen(
     onVolver: () -> Unit = {}
 ) {
     // Guarda temporalmente el título o descripción de la actividad.
-    var textoTarea by remember {
+    var textoTarea by rememberSaveable {
         mutableStateOf("")
     }
     // Guarda temporalmente la fecha seleccionada para la actividad.
-    var fechaTarea by remember {
+    var fechaTarea by rememberSaveable {
         mutableStateOf("")
     }
     // Guarda temporalmente la hora seleccionada para la actividad.
-    var horaTarea by remember {
+    var horaTarea by rememberSaveable {
         mutableStateOf("")
     }
     // Obtiene el contexto actual necesario para mostrar los diálogos de Android.

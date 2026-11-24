@@ -1,5 +1,6 @@
 package com.example.agendapersonal.ui.screens
 
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -57,6 +58,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material.icons.filled.Delete
 import android.app.DatePickerDialog
 import com.example.agendapersonal.util.FormatoAlmacenamiento
+import com.example.agendapersonal.ui.components.AvisoRecordatoriosDesactivados
 
 
 
@@ -74,56 +76,56 @@ fun DiaScreen(
 ) {
 
     // Guarda el texto que el usuario escribe al crear una actividad.
-    var textoTarea by remember { mutableStateOf("") }
+    var textoTarea by rememberSaveable { mutableStateOf("") }
 
     // Guarda la hora seleccionada para la nueva actividad.
-    var horaTarea by remember { mutableStateOf("") }
+    var horaTarea by rememberSaveable { mutableStateOf("") }
 
     // Controla si se debe mostrar el selector de hora.
-    var mostrarSelectorHora by remember { mutableStateOf(false) }
+    var mostrarSelectorHora by rememberSaveable { mutableStateOf(false) }
 
     // Controla la visibilidad del menú principal de la papelera.
-    var mostrarMenuPapelera by remember { mutableStateOf(false) }
+    var mostrarMenuPapelera by rememberSaveable { mutableStateOf(false) }
 
     // Controla la visibilidad del diálogo para eliminar actividades completadas.
-    var mostrarConfirmacionCompletadas by remember { mutableStateOf(false) }
+    var mostrarConfirmacionCompletadas by rememberSaveable { mutableStateOf(false) }
 
     // Controla la visibilidad del diálogo para elegir el tipo de eliminación por periodo.
-    var mostrarMenuPeriodo by remember { mutableStateOf(false) }
+    var mostrarMenuPeriodo by rememberSaveable { mutableStateOf(false) }
 
     // Guarda el tipo de eliminación seleccionado por el usuario.
-    var tipoEliminacion by remember { mutableStateOf("") }
+    var tipoEliminacion by rememberSaveable { mutableStateOf("") }
 
     // Controla la visibilidad del diálogo de selección de actividad.
-    var mostrarSeleccionActividad by remember { mutableStateOf(false) }
+    var mostrarSeleccionActividad by rememberSaveable { mutableStateOf(false) }
 
     // Controla la visibilidad del selector de fecha para eliminar por día.
-    var mostrarSelectorFechaEliminacion by remember { mutableStateOf(false) }
+    var mostrarSelectorFechaEliminacion by rememberSaveable { mutableStateOf(false) }
 
     // Guarda la fecha seleccionada para la eliminación.
-    var fechaEliminacion by remember { mutableStateOf("") }
+    var fechaEliminacion by rememberSaveable { mutableStateOf("") }
 
     // Controla la visibilidad del diálogo de confirmación por periodo.
-    var mostrarConfirmacionPeriodo by remember { mutableStateOf(false) }
+    var mostrarConfirmacionPeriodo by rememberSaveable { mutableStateOf(false) }
 
     // Guarda las fechas inicial y final del rango que se eliminará.
-    var fechaInicioEliminacion by remember { mutableStateOf("") }
-    var fechaFinEliminacion by remember { mutableStateOf("") }
+    var fechaInicioEliminacion by rememberSaveable { mutableStateOf("") }
+    var fechaFinEliminacion by rememberSaveable { mutableStateOf("") }
 
     // Guarda el identificador de la actividad elegida para eliminar.
-    var actividadSeleccionadaId by remember { mutableStateOf<Int?>(null) }
+    var actividadSeleccionadaId by rememberSaveable { mutableStateOf<Int?>(null) }
 
     // Obtiene la fecha actual del dispositivo.
     val calendarioActual = Calendar.getInstance()
 
     // Guarda la fecha que el usuario está consultando en la pantalla.
-    var fechaConsultada by remember {
+    var fechaConsultada by rememberSaveable {
         mutableStateOf(
             FormatoAlmacenamiento.fecha().format(calendarioActual.time)
         )
     }
     // Controla si se muestra el aviso cuando se intenta editar una actividad completada.
-    var mostrarAvisoActividadCompletada by remember {
+    var mostrarAvisoActividadCompletada by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -179,6 +181,11 @@ fun DiaScreen(
                 )
             }
         }
+        // Avisa si falta el permiso de alarmas exactas.
+        AvisoRecordatoriosDesactivados(
+            modifier = Modifier.padding(top = 12.dp)
+        )
+
         // Espacio entre el encabezado y la información de la fecha.
         Spacer(modifier = Modifier.height(20.dp))
 

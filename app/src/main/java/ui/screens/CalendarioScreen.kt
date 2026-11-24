@@ -1,5 +1,6 @@
 package com.example.agendapersonal.ui.screens
 
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -63,7 +64,7 @@ fun CalendarioScreen(
 ) {
 
     // Guarda el mes que actualmente está mostrando el calendario.
-    var mesConsultado by remember {
+    var mesConsultado by rememberSaveable {
         mutableStateOf(
             Calendar.getInstance().apply {
                 set(Calendar.DAY_OF_MONTH, 1)
@@ -72,11 +73,11 @@ fun CalendarioScreen(
     }
 
     // Guarda la fecha que el usuario tiene seleccionada.
-    var fechaSeleccionada by remember {
+    var fechaSeleccionada by rememberSaveable {
         mutableStateOf(Calendar.getInstance())
     }
     // Controla si se muestra el aviso cuando se intenta editar una actividad completada.
-    var mostrarAvisoActividadCompletada by remember {
+    var mostrarAvisoActividadCompletada by rememberSaveable {
         mutableStateOf(false)
     }
 

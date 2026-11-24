@@ -1,5 +1,6 @@
 package com.example.agendapersonal.ui.screens
 
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -63,12 +64,12 @@ fun EditarActividadScreen(
     val actividad = actividades.find { it.id == actividadId }
 
     // Campos que contienen los datos editables de la actividad.
-    var titulo by remember { mutableStateOf("") }
-    var fecha by remember { mutableStateOf("") }
-    var hora by remember { mutableStateOf("") }
+    var titulo by rememberSaveable { mutableStateOf("") }
+    var fecha by rememberSaveable { mutableStateOf("") }
+    var hora by rememberSaveable { mutableStateOf("") }
 
     // Controla si se muestra el diálogo de confirmación de eliminación.
-    var mostrarDialogoEliminar by remember { mutableStateOf(false) }
+    var mostrarDialogoEliminar by rememberSaveable { mutableStateOf(false) }
 
     // Color principal utilizado en la aplicación.
     val azulPrincipal = Color(0xFF4B5F91)
@@ -76,12 +77,20 @@ fun EditarActividadScreen(
     // Obtiene el contexto necesario para mostrar los selectores de Android.
     val contexto = LocalContext.current
 
+    // ID de la actividad cuyos datos ya se cargaron en los campos.
+    // Se conserva al girar la pantalla para no reemplazar lo que el
+    // usuario ya cambió con los valores de Room. Se guarda el ID y no un
+    // simple indicador porque una notificación puede reutilizar esta misma
+    // pantalla (launchSingleTop) para editar otra actividad.
+    var actividadCargadaId by rememberSaveable { mutableStateOf<Int?>(null) }
+
     // Carga los datos de la actividad cuando esta está disponible.
     LaunchedEffect(actividad?.id) {
-        if (actividad != null) {
+        if (actividad != null && actividad.id != actividadCargadaId) {
             titulo = actividad.titulo
             fecha = actividad.fecha
             hora = actividad.hora
+            actividadCargadaId = actividad.id
         }
     }
 
